@@ -7,14 +7,13 @@
 
 #include "SamplePoints.hpp"
 
-std::vector<std::vector<double>> SamplePoints(std::vector<double> &current_pos)
+void SamplePoints(std::vector<double> &current_pos, std::vector<std::vector<double>> &sampled_points)
 {
-	std::vector<double> sampled_pt;
-	std::vector<std::vector<double>> sampled_points;
 
 	// Get a vector of points surround the current position
 	for(int i=0; i<360; i++)
 	{
+		std::vector<double> sampled_pt = new std::vector<double>;
 		//double theta = i * M_PI/180;
 		double theta = i * 3.1415/180;
 
@@ -23,8 +22,6 @@ std::vector<std::vector<double>> SamplePoints(std::vector<double> &current_pos)
 		sampled_pt[1] = current_pos[1] + sin(theta);
 		sampled_points.push_back(sampled_pt);
 	}
-
-	return sampled_points;
 
 }
 
