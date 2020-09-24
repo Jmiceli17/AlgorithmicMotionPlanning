@@ -6,7 +6,6 @@
  */
 
 
-// #include "shape.hpp"
 #include "obstacle.hpp"
 
 
@@ -22,6 +21,8 @@ AlignedRectangle::AlignedRectangle() {
     v2 = {{max_x, min_y}};
     v1 = {{min_x, min_y}};
 	//vertex_vector = {{0, 0}};
+    obstacle_traced = false;
+    vertex_vector = {{v1}, {v2}, {v3}, {v4}};
 
 }
 
@@ -37,6 +38,7 @@ void AlignedRectangle::DefineBoundary(double x_left, double x_right, double y_bo
     v3 = {{max_x, max_y}};
     v2 = {{max_x, min_y}};
     v1 = {{min_x, min_y}};
+    vertex_vector = {{v1}, {v2}, {v3}, {v4}};
 }
 
 AlignedRectangle::~AlignedRectangle()
@@ -45,16 +47,38 @@ AlignedRectangle::~AlignedRectangle()
 }
 
 
+bool AlignedRectangle::P0(std::vector<double> pt_to_check)
+{
+	return (pt_to_check[0] >= vertex_vector[0][0]);
+}
+
+bool AlignedRectangle::P1(std::vector<double> pt_to_check)
+{
+	// Point-slope form
+	double slope = (vertex_vector[1][1]-vertex_vector[0][1])/(vertex_vector[1][0]-vertex_vector[0][0]);
+	return ((pt_to_check[1]-vertex_vector[1][1]) >= slope*(pt_to_check[0]-vertex_vector[0][0]));
+}
+
+bool AlignedRectangle::P2(std::vector<double> pt_to_check)
+{
+	return (pt_to_check[0] <= vertex_vector[2][0]);
+}
+
+bool AlignedRectangle::P3(std::vector<double> pt_to_check)
+{
+	// Point-slope form
+	double slope = (vertex_vector[3][1]-vertex_vector[2][1])/(vertex_vector[3][0]-vertex_vector[2][0]);
+	return ((pt_to_check[1]-vertex_vector[3][1]) <= slope*(pt_to_check[0]-vertex_vector[3][0]));
+}
+
 // Check if given point within the boundary of the rectangle
 bool AlignedRectangle::InCollision(std::vector<double> pt_to_check)
 {
 	bool pt_collides = false;
-	if (pt_to_check[0] < max_x && pt_to_check[0] > min_x)
+
+	if (P0(pt_to_check) && P1(pt_to_check) && P2(pt_to_check) && P3(pt_to_check))
 	{
-		if (pt_to_check[1] < max_y && pt_to_check[1] > min_y)
-		{
-			pt_collides = true;
-		}
+		pt_collides = true;
 	}
 	return pt_collides;
 }

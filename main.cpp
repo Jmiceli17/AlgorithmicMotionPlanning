@@ -2,7 +2,7 @@
 #include <windows.h>
 #include <fstream>
 #include <vector>
-#include <thread>
+
 #include "GetDirection.hpp"
 #include "GetDistance.hpp"
 #include "TakeStep.hpp"
@@ -10,6 +10,7 @@
 #include "rect_obstacle.hpp"
 #include "logger.hpp"
 #include "TraceObstacle.hpp"
+#include "SamplePoints.hpp"
 
 //#include "shape.hpp"
 #include "obstacle.hpp"
@@ -85,6 +86,7 @@ int main(int argc, char **argv) {
 	int mode =  0; 									// O for move to goal, 1 for follow boundary
 
 
+	std::vector<std::vector<double>> sampled_points; // sampled points in circle around robot
 
 	// Main algorithm loop
 	while (not GoalAchieved)
@@ -98,37 +100,71 @@ int main(int argc, char **argv) {
 
 			// Take a step towards the goal and update our current position
 			TakeStep(curr_pos, dir_vec, step_size);
+			std::cout << "step" << std::endl;
 
-			// Check if the point is in collision with any of the obstacles
-			for (int i=0; i<int(obstacle_vector.size()); i++)
+
+			//Sample points around us
+			sampled_points = SamplePoints(curr_pos);
+			std::cout << "sampled" << std::endl;
+
+			// Check if any of the sampled points are in collision with an object
+
+			for (int x = 0; x<int(obstacle_vector.size()); x++)
 			{
-				//if (InCollision(curr_pos, obstacle_vector[i], obstacle_offset))
-				if (obstacle_vector[i].InCollision(curr_pos))
+				std::cout << "in 1st for" << std::endl;
+
+				for (int i=0; i<int(sampled_points.size()); i++)
 				{
-					std::cout<< "COLLISION PT: " << std::endl;
-					std::cout<< curr_pos[0] << " " << curr_pos[1] << std::endl;
 
-					// Flag indicating if we're at the leave point (BUG 1)
-					atLeavePoint = false;
+					if(obstacle_vector[x].InCollision(sampled_points[i]))
+					{
 
-					// This is the obstacle in our way
-					obs_in_path = AlignedRectangle(obstacle_vector[i]);
+						std::cout << "collide" << std::endl;
+						hit_pos = sampled_points[i];
+						obs_in_path = AlignedRectangle(obstacle_vector[x]);
+						mode = 1;
 
-					// set the hit position of the boundary
-					hit_pos = curr_pos;
+					}
+				}
+			}
 
-					// Set the distance to goal
-					//shortest_dist_to_goal = GetDistance(hit_pos, q_goal);
-
-					// Change algorithm mode
-					mode = 1;
-
-					// Take this obstacle out of our obstacle vector because we're done with this one
-					obstacle_vector.erase(obstacle_vector.begin()+i);
-
-				} // End if
-
-			} // End for
+//			// Check if the point is in collision with any of the obstacles
+//			for (int i=0; i<int(obstacle_vector.size()); i++)
+//			{
+//				//if (InCollision(curr_pos, obstacle_vector[i], obstacle_offset))
+//				if (obstacle_vector[i].InCollision(curr_pos))
+//				{
+//					// check if we've already encountered this obstacle
+//					if (obstacle_vector[i].obstacle_traced)
+//					{
+//						continue;
+//					}
+//					else
+//					{
+//
+//						std::cout<< "COLLISION PT: " << std::endl;
+//						std::cout<< curr_pos[0] << " " << curr_pos[1] << std::endl;
+//
+//						// Flag indicating if we're at the leave point (BUG 1)
+//						atLeavePoint = false;
+//
+//						// This is the obstacle in our way
+//						obs_in_path = AlignedRectangle(obstacle_vector[i]);
+//
+//						// set the hit position of the boundary
+//						hit_pos = curr_pos;
+//
+//						// Set the distance to goal
+//						//shortest_dist_to_goal = GetDistance(hit_pos, q_goal);
+//
+//						// Change algorithm mode
+//						mode = 1;
+//
+//					}
+//
+//				} // End if
+//
+//			} // End for
 
 			// Position is good so log it
 			//bug1_logger.log_data();
@@ -141,77 +177,8 @@ int main(int argc, char **argv) {
 
 
 			std::vector<vector<double>> path_taken; // = TraceObstacle(curr_pos, obs_in_path, log_file, step_size, q_goal);
-			TraceObstacle(curr_pos, obs_in_path, path_taken, leave_pos, log_file, step_size, q_goal); // This can probably go in collision check in mode 1
-//			std::vector<vector<double>> path_taken;	// Vector containing all position values the robot takes while following an obstacle (BUG 1)
-//
-//
-//			// ---------ALL THIS SHOULD BE IN A BUG1 FUNCTION-----------------------------------------
-//			// Left turning robot determines the order of this vector
-//			std::vector<std::vector<double>> vertex_vec = {obs_in_path.v4, obs_in_path.v3, obs_in_path.v2, obs_in_path.v1};
-//
-//			// add our starting point to the end of vertex vector (locations will be mini goals during boundary follow mode)
-//			vertex_vec.push_back(curr_pos);
-//			// std::cout<< "VERTEX VEC SIZE: " << vertex_vec.size() << std::endl;
-//
-//			//std::cout << "vertex vec " << vertex_vec[0][0] << " " << vertex_vec[0][1] <<  std::endl;
-//
-//
-//			// Iterate over each vertex and use those in a mini "move to goal" mode
-//			// This will ensure we go all the way around the obstacle
-//			for (int i = 0; i < int(vertex_vec.size()); i++)
-//			{
-//				//std::cout<< "IN FOR LOOP" << std::endl;
-//
-//				// Move toward the current vertex
-//				while (not atVertex)
-//				{
-//					// std::cout<< "IN WHILE" << std::endl;
-//					//std::cout << "vertex vec " << vertex_vec.at(0)[0] << " " << vertex_vec.at(0)[1] <<  std::endl;
-//
-//					// Get direction to the vertex we're currently targeting
-//					GetDirection(dir_vec, curr_pos, std::vector<double>(vertex_vec[i]));
-//					//std::cout<< "GOT DIRECTION" << std::endl;
-//
-//					// Take a step towards the vertex and update our current position
-//					TakeStep(curr_pos, dir_vec, step_size);
-//					//bug1_logger.log_data();
-//					log_file << curr_pos[0] << "," << curr_pos[1] << "\n";
-//
-//
-//					// Add the current position to our memory of the route we've taken so far
-//					path_taken.push_back(curr_pos);
-//					//std::cout << "vector size " << path_taken.size() << std::endl;
-//					//std::cout << "vector [0] " << path_taken[0][1] <<  std::endl;
-//
-//					d_followed = GetDistance(curr_pos, q_goal);
-//
-//					// If we find a point on the obstacle that's closer to the goal
-//					if (d_followed < shortest_dist_to_goal)
-//					{
-//						leave_pos = curr_pos;
-//						// Update the new closest distance
-//						shortest_dist_to_goal = d_followed;
-//					}
-//
-//
-//					// Check if we're at the vertex yet
-//					dist_to_vert = GetDistance(curr_pos, vertex_vec[i]);
-//					if (dist_to_vert < 1e-3)
-//					{
-//						// std::cout<< "AT VERTEX" << std::endl;
-//						atVertex = true;
-//					}
-//
-//				} // End while
-//
-//				// reset the flag
-//				atVertex = false;
-//
-//			} // End for
-
-
-
-
+			leave_pos = TraceObstacle(curr_pos, hit_pos, obs_in_path, path_taken, log_file, step_size, q_goal); // This can probably go in collision check in mode 1
+			obs_in_path.obstacle_traced = true;
 
 //			std::cout<< "LEAVE POS" << std::endl;
 //			std::cout<< leave_pos[0] << " " << leave_pos[1] << std::endl;
@@ -231,17 +198,27 @@ int main(int argc, char **argv) {
 						//if (InCollision(curr_pos, obstacle_vector[i], obstacle_offset))
 						if (obstacle_vector[i].InCollision(curr_pos))
 						{
-							std::cout<< "COLLISION PT: " << std::endl;
-							std::cout<< curr_pos[0] << " " << curr_pos[1] << std::endl;
+							// check if we've already encountered this obstacle
+							if (obstacle_vector[i].obstacle_traced)
+							{
+								continue;
+							}
+							else
+							{
 
-							// Flag indicating if we're at the leave point (BUG 1)
-							atLeavePoint = false;
+								std::cout<< "COLLISION PT: " << std::endl;
+								std::cout<< curr_pos[0] << " " << curr_pos[1] << std::endl;
 
-							// This is the obstacle in our way
-							obs_in_path = AlignedRectangle(obstacle_vector[i]);
+								// Flag indicating if we're at the leave point (BUG 1)
+								atLeavePoint = false;
 
-							// Trace the obstacle and update the leave point
-							TraceObstacle(curr_pos, obs_in_path, path_taken, leave_pos, log_file, step_size, q_goal);
+								// This is the obstacle in our way
+								obs_in_path = AlignedRectangle(obstacle_vector[i]);
+
+								// Trace the obstacle and update the leave point
+								leave_pos = TraceObstacle(curr_pos, hit_pos, obs_in_path, path_taken, log_file, step_size, q_goal);
+								obstacle_vector[i].obstacle_traced = true;
+							}
 						}
 					}
 

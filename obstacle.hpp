@@ -10,6 +10,14 @@ using namespace std;
 class AlignedRectangle : public Shape {
 
 
+	private:
+    // Primitives
+    bool P0(std::vector<double> pt_to_check);	// left vertical
+    bool P1(std::vector<double> pt_to_check);
+    bool P2(std::vector<double> pt_to_check);	// right vertical
+    bool P3(std::vector<double> pt_to_check);
+
+
     public:
         double min_x;
         double max_x;
@@ -19,7 +27,10 @@ class AlignedRectangle : public Shape {
         std::vector<double> v3;
         std::vector<double> v2;
         std::vector<double> v1;
-        //std::vector<std::vector<double>> vertex_vector;
+        bool obstacle_traced;
+        std::vector<std::vector<double>> vertex_vector;
+
+
 
         AlignedRectangle();
         //AlignedRectangle(double x_left, double x_right, double y_bottom, double y_top);
@@ -29,8 +40,11 @@ class AlignedRectangle : public Shape {
         ~AlignedRectangle();
 
         void DefineBoundary(double x_left, double x_right, double y_bottom, double y_top);
-        //void DefineBoundary(std::vector<std::vector<double>> vertex_vector);
 
+        // Define the primatives from the verticies of the obstacle
+        //void Primiatives(std::vector<std::vector<double>> vertex_vector);
+
+        // Check if a given point is in or on the obstacle
         bool InCollision(std::vector<double> pt_to_check);
 
         //void ApplyBoundaryOffset(double offset);
