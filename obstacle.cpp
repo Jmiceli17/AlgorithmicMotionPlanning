@@ -49,6 +49,7 @@ AlignedRectangle::~AlignedRectangle()
 // Primitives 
 bool AlignedRectangle::P0(std::vector<double> pt_to_check)
 {
+	//TODO: add try catch for checking slopes of vertical lines
 	return (pt_to_check[0] >= vertex_vector[0][0]);
 }
 
