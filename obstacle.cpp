@@ -71,6 +71,31 @@ bool AlignedRectangle::P3(std::vector<double> pt_to_check)
 	return ((pt_to_check[1]-vertex_vector[3][1]) <= slope*(pt_to_check[0]-vertex_vector[3][0]));
 }
 
+bool AlignedRectangle::P0_boundary(std::vector<double> pt_to_check)
+{
+	return (abs(pt_to_check[0] - vertex_vector[0][0]) <= 1e-5);
+}
+
+bool AlignedRectangle::P1_boundary(std::vector<double> pt_to_check)
+{
+	// Point-slope form
+	double slope = (vertex_vector[1][1]-vertex_vector[0][1])/(vertex_vector[1][0]-vertex_vector[0][0]);
+	return (abs((pt_to_check[1]-vertex_vector[1][1]) - slope*(pt_to_check[0]-vertex_vector[0][0])) <= 1e-5 );
+}
+
+bool AlignedRectangle::P2_boundary(std::vector<double> pt_to_check)
+{
+	return (abs(pt_to_check[0] - vertex_vector[2][0]) <= 1e-5);
+}
+
+bool AlignedRectangle::P3_boundary(std::vector<double> pt_to_check)
+{
+	// Point-slope form
+	double slope = (vertex_vector[3][1]-vertex_vector[2][1])/(vertex_vector[3][0]-vertex_vector[2][0]);
+	return (abs((pt_to_check[1]-vertex_vector[3][1]) - slope*(pt_to_check[0]-vertex_vector[3][0])) <= 1e-5);
+}
+
+
 // Check if given point within the boundary of the rectangle
 bool AlignedRectangle::InCollision(std::vector<double> pt_to_check)
 {
@@ -83,6 +108,17 @@ bool AlignedRectangle::InCollision(std::vector<double> pt_to_check)
 	return pt_collides;
 }
 
+// Check if a given point is on the boundary
+bool AlignedRectangle::OnBoundary(std::vector<double> pt_to_check)
+{
+
+	bool on_boundary = false;
+	if (P0_boundary(pt_to_check) && P1_boundary(pt_to_check) && P2_boundary(pt_to_check) && P3_boundary(pt_to_check))
+	{
+		on_boundary = true;
+	}
+	return on_boundary;
+}
 //void AlignedRectangle::ApplyBoundaryOffset(double offset)
 //        {
 //
