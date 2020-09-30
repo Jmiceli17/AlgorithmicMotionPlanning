@@ -46,7 +46,7 @@ AlignedRectangle::~AlignedRectangle()
 
 }
 
-
+// Primitives 
 bool AlignedRectangle::P0(std::vector<double> pt_to_check)
 {
 	return (pt_to_check[0] >= vertex_vector[0][0]);
@@ -71,6 +71,7 @@ bool AlignedRectangle::P3(std::vector<double> pt_to_check)
 	return ((pt_to_check[1]-vertex_vector[3][1]) <= slope*(pt_to_check[0]-vertex_vector[3][0]));
 }
 
+// Primitives for identifying boundary
 bool AlignedRectangle::P0_boundary(std::vector<double> pt_to_check)
 {
 	return (abs(pt_to_check[0] - vertex_vector[0][0]) <= 1e-5);
