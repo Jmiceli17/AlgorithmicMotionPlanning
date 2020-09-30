@@ -10,11 +10,11 @@
 
 #include <iostream>
 #include <vector>
-#include "math.h"
+#include <math.h>
 
 using namespace std;
 
-std::vector<std::vector<double>> SamplePoints(std::vector<double> &current_pos);
+void SamplePoints(std::vector<double> &current_pos, std::vector<std::vector<double>>& sampled_points);
 
 
 

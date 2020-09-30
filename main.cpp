@@ -86,7 +86,6 @@ int main(int argc, char **argv) {
 	int mode =  0; 									// O for move to goal, 1 for follow boundary
 
 
-	std::vector<std::vector<double>> sampled_points; // sampled points in circle around robot
 
 	// Main algorithm loop
 	while (not GoalAchieved)
@@ -95,76 +94,46 @@ int main(int argc, char **argv) {
 		if(mode == 0) // Move to goal
 		{
 
+			std::vector<std::vector<double>> sampled_points; // sampled points in circle around robot
+
+
 			// Get the direction to the goal
 			GetDirection(dir_vec, curr_pos, q_goal);
 
 			// Take a step towards the goal and update our current position
 			TakeStep(curr_pos, dir_vec, step_size);
-			std::cout << "step" << std::endl;
 
 
 			//Sample points around us
-			sampled_points = SamplePoints(curr_pos);
-			std::cout << "sampled" << std::endl;
+			SamplePoints(curr_pos, sampled_points);
 
 			// Check if any of the sampled points are in collision with an object
+			for (int i=0; i<int(sampled_points.size()); i++)
 
-			for (int x = 0; x<int(obstacle_vector.size()); x++)
 			{
-				std::cout << "in 1st for" << std::endl;
-
-				for (int i=0; i<int(sampled_points.size()); i++)
+				// If we detected a collision
+				if(mode == 1)
 				{
-
-					if(obstacle_vector[x].InCollision(sampled_points[i]))
+					break;
+				}
+				else // continue checking points
+				{
+					for (int x = 0; x<int(obstacle_vector.size()); x++)
 					{
 
-						std::cout << "collide" << std::endl;
-						hit_pos = sampled_points[i];
-						obs_in_path = AlignedRectangle(obstacle_vector[x]);
-						mode = 1;
+						if(obstacle_vector[x].InCollision(sampled_points[i]))
+						{
 
+							std::cout << "collide" << std::endl;
+							hit_pos = sampled_points[i];
+							obs_in_path = AlignedRectangle(obstacle_vector[x]);
+							mode = 1;
+
+						}
 					}
 				}
 			}
 
-//			// Check if the point is in collision with any of the obstacles
-//			for (int i=0; i<int(obstacle_vector.size()); i++)
-//			{
-//				//if (InCollision(curr_pos, obstacle_vector[i], obstacle_offset))
-//				if (obstacle_vector[i].InCollision(curr_pos))
-//				{
-//					// check if we've already encountered this obstacle
-//					if (obstacle_vector[i].obstacle_traced)
-//					{
-//						continue;
-//					}
-//					else
-//					{
-//
-//						std::cout<< "COLLISION PT: " << std::endl;
-//						std::cout<< curr_pos[0] << " " << curr_pos[1] << std::endl;
-//
-//						// Flag indicating if we're at the leave point (BUG 1)
-//						atLeavePoint = false;
-//
-//						// This is the obstacle in our way
-//						obs_in_path = AlignedRectangle(obstacle_vector[i]);
-//
-//						// set the hit position of the boundary
-//						hit_pos = curr_pos;
-//
-//						// Set the distance to goal
-//						//shortest_dist_to_goal = GetDistance(hit_pos, q_goal);
-//
-//						// Change algorithm mode
-//						mode = 1;
-//
-//					}
-//
-//				} // End if
-//
-//			} // End for
 
 			// Position is good so log it
 			//bug1_logger.log_data();
@@ -176,14 +145,16 @@ int main(int argc, char **argv) {
 		{
 
 
+			std::cout << "mode 1" << std::endl;
+
 			std::vector<vector<double>> path_taken; // = TraceObstacle(curr_pos, obs_in_path, log_file, step_size, q_goal);
 			leave_pos = TraceObstacle(curr_pos, hit_pos, obs_in_path, path_taken, log_file, step_size, q_goal); // This can probably go in collision check in mode 1
-			obs_in_path.obstacle_traced = true;
 
-//			std::cout<< "LEAVE POS" << std::endl;
-//			std::cout<< leave_pos[0] << " " << leave_pos[1] << std::endl;
+
 			while(not atLeavePoint)
 			{
+
+				std::cout << "going to leave pt" << std::endl;
 
 				// Use our memory of the route to get to the leave point
 				for (int i = 0; i < int(path_taken.size()); i++)
